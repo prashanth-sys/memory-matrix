@@ -1,20 +1,17 @@
 import {Component} from 'react'
-
 import {FaArrowLeft} from 'react-icons/fa'
-
+import {Link} from 'react-router-dom'
 import RulesModal from '../RulesModel'
-
 import './index.css'
 
 class MemoryMatrix extends Component {
   state = {
     highlightedIndices: [],
-    isModelOpen: false,
+    clickedIndex: null,
   }
 
   componentDidMount() {
     this.getGridButtons()
-
     this.intervalId = setInterval(this.getGridButtons, 6000)
   }
 
@@ -28,10 +25,9 @@ class MemoryMatrix extends Component {
     const slicedArray = shuffledArray.slice(0, 3)
     this.setState({highlightedIndices: slicedArray}, () => {
       setTimeout(() => {
-        this.setState({highlightedIndices: []})
+        this.setState({highlightedIndices: [], clickedIndex: null})
       }, 3000)
     })
-
     console.log('New grid buttons:', slicedArray)
   }
 
@@ -42,37 +38,32 @@ class MemoryMatrix extends Component {
   }
 
   onClickCell = index => {
-    console.log(index)
     clearInterval(this.intervalId)
     const {highlightedIndices} = this.state
+    const isMatch = highlightedIndices.includes(index)
 
-    if (highlightedIndices.includes(index + 1)) {
+    if (isMatch) {
       console.log('matched')
-      return 'highlighted'
-    }
-    if (!highlightedIndices.includes(index + 1)) {
+      this.setState({clickedIndex: index})
+    } else {
       console.log('not matched')
       this.intervalId = setInterval(this.getGridButtons, 6000)
     }
-    return ''
   }
 
-  nextLevel = () => {}
-
   render() {
-    const {highlightedIndices, isModelOpen} = this.state
+    const {highlightedIndices, clickedIndex, isModelOpen} = this.state
 
     return (
       <div className="memory-matrix-container">
         <div className="game-rules-container">
-          <button type="button" className="back-button">
-            <FaArrowLeft className="icon" />
-
-            <p className="back">Back</p>
-          </button>
-
+          <Link to="/memory/matrix" className="link">
+            <button type="button" className="back-button">
+              <FaArrowLeft className="icon" />
+              <p className="back">Back</p>
+            </button>
+          </Link>
           <RulesModal isOpen={isModelOpen} onClose={this.toggleModel} />
-
           <button
             type="button"
             className="rules-button"
@@ -81,15 +72,11 @@ class MemoryMatrix extends Component {
             Rules
           </button>
         </div>
-
         <h1 className="game-heading">Memory Matrix</h1>
-
         <div className="level-container">
           <p className="level">Level-1</p>
-
           <p className="level">Max Level-00</p>
         </div>
-
         <div className="game-container">
           {Array.from({length: 9}, (_, index) => (
             <button
@@ -97,7 +84,7 @@ class MemoryMatrix extends Component {
               type="button"
               className={`button ${
                 highlightedIndices.includes(index + 1) ? 'highlight' : ''
-              }`}
+              } ${clickedIndex === index ? 'clicked' : ''}`}
               onClick={() => this.onClickCell(index)}
             >
               {_}
